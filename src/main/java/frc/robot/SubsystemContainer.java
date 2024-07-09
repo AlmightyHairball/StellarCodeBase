@@ -5,7 +5,9 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -22,6 +24,9 @@ public class SubsystemContainer {
 
   // Declare Auto Selector
   private SendableChooser<Command> autoChooser;
+
+  // Add in Path planner field positioning telemetry
+  private Field2d field;
 
 public SubsystemContainer() { 
   /* Initialization code is handled by calling initializeRobot in the Robot class */
@@ -66,6 +71,13 @@ public SubsystemContainer() {
     // Switches between vision and rotary for the 2024 robot
     chassis.setDefaultCommand(new DriveWithRotaryAndVisionLegacy(false, true, true, chassis));
     mechSystem.setDefaultCommand(new MechanismControllerCommand(mechSystem));
+
+    // Pathplanner logging
+    field = new Field2d();
+    SmartDashboard.putData("Field", field);
+    PathPlannerLogging.setLogCurrentPoseCallback((pose) -> {field.setRobotPose(pose);});
+    PathPlannerLogging.setLogTargetPoseCallback((pose) -> {field.getObject("target pose").setPose(pose);});
+    PathPlannerLogging.setLogActivePathCallback((poses) -> {field.getObject("path").setPoses(poses);});
 
   }
 

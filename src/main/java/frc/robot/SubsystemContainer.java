@@ -11,11 +11,13 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.RobotAutonomous.commands.Crescendo.Autos;
 import frc.robot.RobotChassis.Subsystems.SwerveChassisSubsystem;
 import frc.robot.RobotMechanisms.Crescendo.MechanismSubsystem;
 import frc.robot.RobotMechanisms.Crescendo.Commands.DriveWithRotaryAndVisionLegacy;
 import frc.robot.RobotMechanisms.Crescendo.Commands.MechanismControllerCommand;
+import frc.robot.RobotVision.VisionSubsystem;
 
 public class SubsystemContainer {
 
@@ -27,6 +29,9 @@ public class SubsystemContainer {
 
   // Add in Path planner field positioning telemetry
   private Field2d field;
+
+  // Create experimental vision subsystem
+  private VisionSubsystem vision = new VisionSubsystem();
 
 public SubsystemContainer() { 
   /* Initialization code is handled by calling initializeRobot in the Robot class */
@@ -72,6 +77,10 @@ public SubsystemContainer() {
     chassis.setDefaultCommand(new DriveWithRotaryAndVisionLegacy(false, true, true, chassis));
     mechSystem.setDefaultCommand(new MechanismControllerCommand(mechSystem));
 
+    // Set vision periodic to run periodicly
+    vision.setDefaultCommand(new RunCommand(() -> {vision.periodic();}, vision));
+
+
     // Pathplanner logging
     field = new Field2d();
     SmartDashboard.putData("Field", field);
@@ -83,6 +92,10 @@ public SubsystemContainer() {
 
   public SwerveChassisSubsystem getChassis() {
     return chassis;
+  }
+
+  public Field2d getFieldObject() {
+    return field;
   }
 
   public Command getAutonomousCommand() {

@@ -11,6 +11,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotVision.VisionConstants.PhotonConstants;
 
 // This class is responsible for processing the results
 // of the vision data streamed over via from the Pi
@@ -22,18 +23,16 @@ public class VisionSubsystem extends SubsystemBase {
   // Create camera objects for each camera on the robot.
   // The camera name should be the name of the Network Table
   // that contains the camera stream.
-  private PhotonCamera stellarVision1 = new PhotonCamera("LifeCam"); // Just a placeholder as of the time of writing this.
-
-  // Get apriltag position data via FIRST provided json file
-  //private AprilTagFieldLayout fieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+  private PhotonCamera camera = new PhotonCamera(PhotonConstants.cameraName1);
 
   public VisionSubsystem() {
-    if (this.stellarVision1.isConnected()) {System.out.println("WE HAVE CAMERA CONNECTION!");}
+    // Send a notifier when camera is online
+    if (this.camera.isConnected()) {System.out.println("CAMERA CONNECTION SUCCESSFUL!");}
   }
 
   // Returns the latest information from photonvision
   public PhotonPipelineResult getLatest() {
-    return this.stellarVision1.getLatestResult();
+    return this.camera.getLatestResult();
   }
 
   // Returns whether photon sees one or more apriltags
@@ -51,10 +50,19 @@ public class VisionSubsystem extends SubsystemBase {
     return this.getLatest().getBestTarget();
   }
 
+  public double[] getBestTagData() {
+    double[] data = new double[4];
+    data[0] = this.getBestVisibleTarget().getFiducialId();
+    data[1] = this.getBestVisibleTarget().getPitch();
+    data[2] = this.getBestVisibleTarget().getYaw();
+    data[3] = this.getBestVisibleTarget().getSkew();
+    data[4] = this.getBestVisibleTarget().getArea();
 
+    return data;
+  }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    
   }
 }

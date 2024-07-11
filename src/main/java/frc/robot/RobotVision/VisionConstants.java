@@ -4,7 +4,11 @@
 
 package frc.robot.RobotVision;
 
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 
 /** Constants file for holding vision id and positioning information */
 public class VisionConstants {
@@ -19,24 +23,16 @@ public class VisionConstants {
          * chosen the photon client for each camera and
          * are identified as so in network tables */ 
         public static final String cameraName1 = "StellarVision1";
-        public static final String cameraName2 = "StellarVision2";
-        public static final String cameraName3 = "StellarVision3";
 
     }
 
     public static final class PositionConstants {
 
-        // Camera 1 positional data
-        public static final double camera1HeightMeters = Units.inchesToMeters(0);
-        public static final double camera1PitchRadians = Units.degreesToRadians(0);
+        // Camera 1 position relative to the robot center ([Facing Forward In Center][Half A Meter Forward][Half A Meter Up])
+        public Transform3d robotToCam = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
 
-        // Camera 1 positional data
-        public static final double camera2HeightMeters = Units.inchesToMeters(0);
-        public static final double camera2PitchRadians = Units.degreesToRadians(0);
-
-        // Camera 1 positional data
-        public static final double camera3HeightMeters = Units.inchesToMeters(0);
-        public static final double camera3PitchRadians = Units.degreesToRadians(0);
+        // Get apriltag position data via FIRST provided json file
+        public AprilTagFieldLayout tagPositions = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
 
     }
 

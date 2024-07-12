@@ -5,17 +5,18 @@
 package frc.robot.RobotVision;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
-import org.photonvision.targeting.TargetCorner;
-
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotVision.VisionConstants.PhotonConstants;
+import frc.robot.RobotVision.VisionConstants.PositionConstants;
 
 // This class is responsible for processing the results
 // of the vision data streamed over via from the Pi
@@ -28,6 +29,8 @@ public class VisionSubsystem extends SubsystemBase {
   // The camera name should be the name of the Network Table
   // that contains the camera stream.
   private PhotonCamera camera1 = new PhotonCamera(PhotonConstants.cameraName1);
+
+  private PhotonPoseEstimator deathRay = new PhotonPoseEstimator(PositionConstants.tagPositions, PoseStrategy.AVERAGE_BEST_TARGETS, PositionConstants.robotToCam);
 
   public VisionSubsystem() {
     // Send a notifier when camera is online
@@ -96,10 +99,14 @@ public class VisionSubsystem extends SubsystemBase {
     return data;
   }
 
+  public Optional<EstimatedRobotPose> painAndSuffering() {
+    return deathRay.update();
+  }
+
   @Override
   public void periodic() {
 
-      double[] visionData = getSpecifiedTagData(camera1, 7);
+      double[] visionData = getSpecifiedTagData(camera1, 4);
       SmartDashboard.putNumber("VisionID", visionData[0]);
       SmartDashboard.putNumber("VisionPitch", visionData[1]);
       SmartDashboard.putNumber("VisionYaw", visionData[2]);
@@ -107,5 +114,11 @@ public class VisionSubsystem extends SubsystemBase {
       SmartDashboard.putNumber("VisionArea", visionData[4]);
       SmartDashboard.putNumber("VisionTarget", visionData[5]);
 
+      try {
+        EstimatedRobotPose painfulness = painAndSuffering().get();
+        SmartDashboard.putNumber("DeathRay", painfulness.estimatedPose.getX());
+      } catch (Exception e) {
+        System.out.println("So Sad :[");
+      }
   }
 }

@@ -19,6 +19,9 @@
     }
   },
   "NetworkTables": {
+    "Transitory Values": {
+      "open": false
+    },
     "transitory": {
       "PathPlanner": {
         "double[]##v_/PathPlanner/currentPose": {
@@ -46,7 +49,6 @@
         "open": true
       },
       "open": true
-    },
-    "visible": true
+    }
   }
 }

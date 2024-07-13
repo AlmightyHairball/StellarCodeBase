@@ -166,9 +166,16 @@ public class DriveWithRotaryAndVisionLegacy extends Command {
     }
 
     // Convert the commanded speeds into the correct units for the drivetrain
-    double xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
+    double dashTranslationSpeed = SmartDashboard.getNumber("TranslationSpeed", DriveConstants.kMaxSpeedMetersPerSecond);
+    double dashAngularSpeed =  SmartDashboard.getNumber("RotationSpeed", DriveConstants.kMaxAngularSpeedFactor);
+
+    double xSpeedDelivered = xSpeedCommanded * dashTranslationSpeed;
+    double ySpeedDelivered = ySpeedCommanded * dashTranslationSpeed;
+    double rotDelivered = m_currentRotation * dashAngularSpeed;
+
+    /*double xSpeedDelivered = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
     double ySpeedDelivered = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond;
-    double rotDelivered = m_currentRotation * DriveConstants.kMaxAngularSpeed;
+    double rotDelivered = m_currentRotation * DriveConstants.kMaxAngularSpeed;*/
 
     // Convert values into either a robot relative or field oriented Chassis Speed object
     ChassisSpeeds positionCommanded = fieldRelative

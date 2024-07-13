@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import frc.robot.BaseConstants.DriveConstants;
 import frc.robot.RobotAutonomous.commands.Crescendo.Autos;
 import frc.robot.RobotChassis.Subsystems.SwerveChassisSubsystem;
 import frc.robot.RobotMechanisms.Crescendo.MechanismSubsystem;
@@ -72,6 +73,10 @@ public SubsystemContainer() {
     // Display the Auto Selector
     autoChooser = AutoBuilder.buildAutoChooser("Default");
     SmartDashboard.putData("Select Auto", autoChooser);
+
+    // Display a speed control
+    SmartDashboard.putNumber("TranslationSpeed", DriveConstants.kMaxSpeedMetersPerSecond);
+    SmartDashboard.putNumber("RotationSpeed", DriveConstants.kMaxAngularSpeedFactor);
 
     // Switches between vision and rotary for the 2024 robot
     chassis.setDefaultCommand(new DriveWithRotaryAndVisionLegacy(false, true, true, chassis));

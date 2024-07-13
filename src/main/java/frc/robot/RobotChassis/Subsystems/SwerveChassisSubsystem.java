@@ -16,7 +16,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.SubsystemContainer;
 import frc.robot.BaseConstants.AutoConstants;
 import frc.robot.BaseConstants.DriveConstants;
 import frc.robot.RobotUtilities.MiscUtils;
@@ -93,7 +92,7 @@ public class SwerveChassisSubsystem extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         });
-    SubsystemContainer.getSingletonInstance().getFieldObject().setRobotPose(m_odometry.getPoseMeters());
+    //SubsystemContainer.getSingletonInstance().getFieldObject().setRobotPose(m_odometry.getPoseMeters());
   }
 
   /**

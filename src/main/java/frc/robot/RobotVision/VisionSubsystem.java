@@ -11,10 +11,14 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.targeting.PNPResult;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.SubsystemContainer;
 import frc.robot.RobotVision.VisionConstants.PhotonConstants;
 import frc.robot.RobotVision.VisionConstants.PositionConstants;
 
@@ -30,7 +34,7 @@ public class VisionSubsystem extends SubsystemBase {
   // that contains the camera stream.
   private PhotonCamera camera1 = new PhotonCamera(PhotonConstants.cameraName1);
 
-  private PhotonPoseEstimator deathRay = new PhotonPoseEstimator(PositionConstants.tagPositions, PoseStrategy.AVERAGE_BEST_TARGETS, PositionConstants.robotToCam);
+  private PhotonPoseEstimator poseEstimator = new PhotonPoseEstimator(PositionConstants.tagPositions, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera1, PositionConstants.robotToCam);
 
   public VisionSubsystem() {
     // Send a notifier when camera is online
@@ -55,6 +59,20 @@ public class VisionSubsystem extends SubsystemBase {
   // Returns the best target in view of the photon camera
   public PhotonTrackedTarget getBestVisibleTarget(PhotonCamera photonCamera) {
     return getLatest(photonCamera).getBestTarget();
+  }
+
+  public Optional<EstimatedRobotPose> getPoseEstimate() {
+    return poseEstimator.update();
+  }
+
+  // Returns a processed transform based on all the tag positions in the frame from the coprocessor.
+  public Transform3d getMultiTagTarget(PhotonCamera photonCamera) {
+    PNPResult data = getLatest(photonCamera).getMultiTagResult().estimatedPose;
+    if (data.isPresent) {
+      return data.best;
+    } else {
+      return null;
+    }
   }
 
   // Grab specific target based off of ID
@@ -99,26 +117,16 @@ public class VisionSubsystem extends SubsystemBase {
     return data;
   }
 
-  public Optional<EstimatedRobotPose> painAndSuffering() {
-    return deathRay.update();
-  }
-
   @Override
   public void periodic() {
 
-      double[] visionData = getSpecifiedTagData(camera1, 4);
-      SmartDashboard.putNumber("VisionID", visionData[0]);
-      SmartDashboard.putNumber("VisionPitch", visionData[1]);
-      SmartDashboard.putNumber("VisionYaw", visionData[2]);
-      SmartDashboard.putNumber("VisionSkew", visionData[3]);
-      SmartDashboard.putNumber("VisionArea", visionData[4]);
-      SmartDashboard.putNumber("VisionTarget", visionData[5]);
+        // Some code to get the vision estimate and post in the field widget in the dashboard
+        Optional<EstimatedRobotPose> estimate = getPoseEstimate();
 
-      try {
-        EstimatedRobotPose painfulness = painAndSuffering().get();
-        SmartDashboard.putNumber("DeathRay", painfulness.estimatedPose.getX());
-      } catch (Exception e) {
-        System.out.println("So Sad :[");
-      }
+        if (estimate.isPresent()) {
+          Pose3d estimatedRobotPose = estimate.get().estimatedPose;
+          SubsystemContainer.getSingletonInstance().getFieldObject().setRobotPose(estimatedRobotPose.toPose2d());
+        }
+
   }
 }

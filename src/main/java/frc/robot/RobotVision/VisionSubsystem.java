@@ -15,10 +15,10 @@ import org.photonvision.targeting.PNPResult;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.SubsystemContainer;
 import frc.robot.RobotVision.VisionConstants.PhotonConstants;
 import frc.robot.RobotVision.VisionConstants.PositionConstants;
 
@@ -32,14 +32,20 @@ public class VisionSubsystem extends SubsystemBase {
   // Create camera objects for each camera on the robot.
   // The camera name should be the name of the Network Table
   // that contains the camera stream.
-  private PhotonCamera camera1 = new PhotonCamera(PhotonConstants.cameraName1);
+  public PhotonCamera camera1 = new PhotonCamera(PhotonConstants.cameraName1);
 
-  private PhotonPoseEstimator poseEstimator = new PhotonPoseEstimator(PositionConstants.tagPositions, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera1, PositionConstants.robotToCam);
+  // Create a photon pose estimator for april tag, field pose estimation
+  private PhotonPoseEstimator poseEstimator = new PhotonPoseEstimator(
+    PositionConstants.tagPositions, 
+    PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, 
+    camera1, 
+    PositionConstants.robotToCam);
 
-  public VisionSubsystem() {
-    // Send a notifier when camera is online
-    if (this.camera1.isConnected()) {System.out.println("CAMERA_1 CONNECTION SUCCESSFUL!");}
-  }
+  // Create a refrence to the global pose estimator in the chassis subsystem
+  //SwerveDrivePoseEstimator globalOdometry = SubsystemContainer.getSingletonInstance().getChassis().swervePoseEstimator;
+
+  // Nothing is needed in the constructor at the moment, so thats why it's empty.
+  public VisionSubsystem() {/* Nothing to init here! */}
 
   // Returns the latest information from photonvision
   public PhotonPipelineResult getLatest(PhotonCamera photonCamera) {
@@ -117,16 +123,28 @@ public class VisionSubsystem extends SubsystemBase {
     return data;
   }
 
+  // A function to apply the vision pose to the global estimated robot pose
+  /*public void updateRobotOdometryWithVision() {
+    Optional<EstimatedRobotPose> estimate = getPoseEstimate();
+    if (estimate.isPresent()) {
+      Pose3d estimatedRobotPose = estimate.get().estimatedPose;
+      //globalOdometry.addVisionMeasurement(estimatedRobotPose.toPose2d(), Timer.getFPGATimestamp());
+    }
+  }*/
+
+  // A function to apply the vision pose to the global estimated robot pose
+  public Pose2d getVisionOdometryEstimate() {
+    Optional<EstimatedRobotPose> estimate = getPoseEstimate();
+    if (estimate.isPresent()) {
+      Pose3d estimatedRobotPose = estimate.get().estimatedPose;
+      return estimatedRobotPose.toPose2d();
+    } else {
+      return null;
+    }
+  }
+
   @Override
   public void periodic() {
-
-        // Some code to get the vision estimate and post in the field widget in the dashboard
-        Optional<EstimatedRobotPose> estimate = getPoseEstimate();
-
-        if (estimate.isPresent()) {
-          Pose3d estimatedRobotPose = estimate.get().estimatedPose;
-          SubsystemContainer.getSingletonInstance().getFieldObject().setRobotPose(estimatedRobotPose.toPose2d());
-        }
-
+    /*updateRobotOdometryWithVision();*/
   }
 }

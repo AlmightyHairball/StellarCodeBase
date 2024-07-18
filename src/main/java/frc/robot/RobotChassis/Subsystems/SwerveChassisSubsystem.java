@@ -6,6 +6,7 @@ package frc.robot.RobotChassis.Subsystems;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -14,8 +15,10 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.SubsystemContainer;
 import frc.robot.BaseConstants.AutoConstants;
 import frc.robot.BaseConstants.DriveConstants;
 import frc.robot.RobotUtilities.MiscUtils;
@@ -53,22 +56,24 @@ public class SwerveChassisSubsystem extends SubsystemBase {
 
   // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
-      DriveConstants.kDriveKinematics,
-      Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ) - 90),
-      new SwerveModulePosition[] {
-          m_frontLeft.getPosition(),
-          m_frontRight.getPosition(),
-          m_rearLeft.getPosition(),
-          m_rearRight.getPosition()
-      });
+    DriveConstants.kDriveKinematics,
+    Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ) - 90),
+    getModulePositions());
+
+  // Global pose estimator object
+  public SwerveDrivePoseEstimator swervePoseEstimator = new SwerveDrivePoseEstimator(
+    DriveConstants.kDriveKinematics, 
+    Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ) - 90), 
+    getModulePositions(),
+    getPose());
 
   /** Creates a new DriveSubsystem. */
   public SwerveChassisSubsystem() {
 
     // Configure Path Planner for auto functionality
     AutoBuilder.configureHolonomic(
-            this::getPose, // Robot pose supplier
-            this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
+            this::getGlobalPose, // Robot pose supplier
+            this::resetGlobalOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
             this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             (speeds) -> drive(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             AutoConstants.pathFollowerConfig,
@@ -83,16 +88,29 @@ public class SwerveChassisSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+
     // Update the odometry in the periodic block
     m_odometry.update(
-        Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)),
-        new SwerveModulePosition[] {
-            m_frontLeft.getPosition(),
-            m_frontRight.getPosition(),
-            m_rearLeft.getPosition(),
-            m_rearRight.getPosition()
-        });
-    //SubsystemContainer.getSingletonInstance().getFieldObject().setRobotPose(m_odometry.getPoseMeters());
+      Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)),
+      getModulePositions());
+
+    // Update our global pose estimator with a timestamp
+    swervePoseEstimator.updateWithTime(
+      Timer.getFPGATimestamp(), 
+      Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)), 
+      getModulePositions());
+
+    // Add the vision estimate if new data is availible
+    var visionEst = SubsystemContainer.getSingletonInstance().getVisionObject().getVisionOdometryEstimate();
+    if (visionEst != null) {
+      // (TEST) add vision estimate to global pose
+      swervePoseEstimator.addVisionMeasurement(visionEst, Timer.getFPGATimestamp());
+    }
+
+    // Update the field object with the odometry data
+    SubsystemContainer.getSingletonInstance().getFieldObject().setRobotPose(getGlobalPose());
+    SubsystemContainer.getSingletonInstance().getFieldObject().getObject("target pose").setPose(m_odometry.getPoseMeters());
+
   }
 
   /**
@@ -102,6 +120,11 @@ public class SwerveChassisSubsystem extends SubsystemBase {
    */
   public Pose2d getPose() {
     return m_odometry.getPoseMeters();
+  }
+
+  // Returns the estimated position of the global pose odometry object
+  public Pose2d getGlobalPose() {
+    return swervePoseEstimator.getEstimatedPosition();
   }
 
   /**
@@ -119,6 +142,18 @@ public class SwerveChassisSubsystem extends SubsystemBase {
             m_rearRight.getPosition()
         },
         pose);
+  }
+
+  public void resetGlobalOdometry(Pose2d pose) {
+    swervePoseEstimator.resetPosition(
+      Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)),
+      new SwerveModulePosition[] {
+          m_frontLeft.getPosition(),
+          m_frontRight.getPosition(),
+          m_rearLeft.getPosition(),
+          m_rearRight.getPosition()
+      },
+      pose);
   }
 
   // The primary method of commanding the chassis speeds.  Any higher control leveles should be handled outside this class.
@@ -160,6 +195,15 @@ public class SwerveChassisSubsystem extends SubsystemBase {
     m_frontRight.setDesiredState(desiredStates[1]);
     m_rearLeft.setDesiredState(desiredStates[2]);
     m_rearRight.setDesiredState(desiredStates[3]);
+  }
+
+  public SwerveModulePosition[] getModulePositions() {
+    return new SwerveModulePosition[] {
+        m_frontLeft.getPosition(),
+        m_frontRight.getPosition(),
+        m_rearLeft.getPosition(),
+        m_rearRight.getPosition()
+    };
   }
 
   /** Resets the drive encoders to currently read a position of 0. */

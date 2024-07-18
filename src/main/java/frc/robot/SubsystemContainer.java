@@ -103,6 +103,10 @@ public SubsystemContainer() {
     return field;
   }
 
+  public VisionSubsystem getVisionObject() {
+    return vision;
+  }
+
   public Command getAutonomousCommand() {
     // Call the pathplanner auto lib
     return autoChooser.getSelected();

@@ -10,10 +10,12 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.SubsystemContainer;
 import frc.robot.RobotMechanisms.Crescendo.MechanismConstants.ShooterConstants;
 import frc.robot.RobotUtilities.MiscUtils;
 
@@ -51,6 +53,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public DoublePublisher anglePub;
     public DoublePublisher speedPub;
+
+    // Some sort of linear filter for the vision
+    LinearFilter zFilter = LinearFilter.singlePoleIIR(0.5, 0.02);
 
   public ShooterSubsystem(VisionSubsystemLegacy vision) {
 
@@ -163,8 +168,25 @@ public class ShooterSubsystem extends SubsystemBase {
       this.setTargetAngle((degrees - 34) * DEGREES_TO_ROTATIONS);
   }
 
+  // This get the pitch via the new vision subsystem
+  public double getVisionPitch() {
+    var visionObject =  SubsystemContainer.getSingletonInstance().getVisionObject();
+    // Need to be updated with the correct ID.
+    var redTagZ = visionObject.getSpecifiedTarget(visionObject.camera1, 1);
+    var blueTagZ = visionObject.getSpecifiedTarget(visionObject.camera1, 2);
+    if (redTagZ != null) {
+        return redTagZ.getPitch();
+    } else if (blueTagZ != null) {
+        return blueTagZ.getPitch();
+    } else {
+        return 0;
+    }
+  }
+
   public void setVisionAngle() {
-      double dSquared = Math.pow(vision.getAprilTagZ(0), 2); // Where d = distance from april tag to camera (refrenced as apriltag z)
+      double visionSource = zFilter.calculate(getVisionPitch()); 
+      double legacyVisionSource = vision.getAprilTagZ(0);
+      double dSquared = Math.pow(legacyVisionSource, 2); // Where d = distance from april tag to camera (refrenced as apriltag z)
       double nSquared = Math.pow(this.APRIL_TAG_TO_FLOOR - this.CAMERA_TO_FLOOR, 2); // self explanatory (if it wasn't already obvious)
       double z = Math.sqrt(dSquared - nSquared); // distance from the robot to the front face of the speaker
       this.setAngleFromDistance(z);

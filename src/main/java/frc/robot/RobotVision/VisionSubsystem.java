@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonUtils;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PNPResult;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -17,6 +18,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotVision.VisionConstants.PhotonConstants;
@@ -47,6 +49,11 @@ public class VisionSubsystem extends SubsystemBase {
   // Nothing is needed in the constructor at the moment, so thats why it's empty.
   public VisionSubsystem() {/* Nothing to init here! */}
 
+
+  /* ----------------------------------------------------
+   * Fundamental methods for basic camera functions
+   * -------------------------------------------------- */
+
   // Returns the latest information from photonvision
   public PhotonPipelineResult getLatest(PhotonCamera photonCamera) {
     return photonCamera.getLatestResult();
@@ -67,8 +74,25 @@ public class VisionSubsystem extends SubsystemBase {
     return getLatest(photonCamera).getBestTarget();
   }
 
+
+  /* ----------------------------------------------------
+   * Utilities for common vision processing techniques
+   * -------------------------------------------------- */
+
   public Optional<EstimatedRobotPose> getPoseEstimate() {
     return poseEstimator.update();
+  }
+
+  // Returns yaw difference to a given pose on the field
+  public Rotation2d getYawToPose(Pose2d currentPose, Pose2d targetPose) {
+    return PhotonUtils.getYawToPose(currentPose, targetPose);
+  }
+
+  // Returns yaw difference to a given tag on the field
+  public Rotation2d getYawToTag(Pose2d currentPose, int tagId) {
+    Pose2d tagPose; // The tag poase shouldnt be null, but in the case that it is, well pass the problem onto the caller
+    try { tagPose = PositionConstants.tagPositions.getTagPose(tagId).get().toPose2d(); } catch (Exception e) { return null; }
+    return PhotonUtils.getYawToPose(currentPose, tagPose);
   }
 
   // Returns a processed transform based on all the tag positions in the frame from the coprocessor.
@@ -122,15 +146,6 @@ public class VisionSubsystem extends SubsystemBase {
     data[5] = photonCamera.getLatestResult().hasTargets() ? 1:0;
     return data;
   }
-
-  // A function to apply the vision pose to the global estimated robot pose
-  /*public void updateRobotOdometryWithVision() {
-    Optional<EstimatedRobotPose> estimate = getPoseEstimate();
-    if (estimate.isPresent()) {
-      Pose3d estimatedRobotPose = estimate.get().estimatedPose;
-      //globalOdometry.addVisionMeasurement(estimatedRobotPose.toPose2d(), Timer.getFPGATimestamp());
-    }
-  }*/
 
   // A function to apply the vision pose to the global estimated robot pose
   public Pose2d getVisionOdometryEstimate() {

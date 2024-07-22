@@ -4,13 +4,17 @@
 
 package frc.robot.RobotMechanisms.Crescendo.Commands;
 
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.SubsystemContainer;
 import frc.robot.BaseConstants.DriveConstants;
 import frc.robot.BaseConstants.IOConstants;
 import frc.robot.RobotChassis.Subsystems.SwerveChassisSubsystem;
@@ -20,6 +24,7 @@ import frc.robot.RobotMechanisms.Crescendo.MechanismConstants.MiscConstants;
 import frc.robot.RobotMechanisms.Crescendo.Subsystems.VisionSubsystemLegacy;
 import frc.robot.RobotUtilities.MiscUtils;
 import frc.robot.RobotUtilities.SwerveUtils;
+import frc.robot.RobotVision.VisionSubsystem;
 
 public class DriveWithRotaryAndVisionLegacy extends Command {
   
@@ -93,10 +98,28 @@ public class DriveWithRotaryAndVisionLegacy extends Command {
     Rotation2d rotaryAngle = cIO.stellarController.getRightRotary();
     double rot; // Value will be assigned based off if were using vision or not
 
-    // Determine whether to use vision or rotary
+   /* // Determine whether to use vision or rotary
     if (cIO.stellarController.getRightCenterButton()) {
       // Use AimBot PID Controller to align chassis with apriltag (tagId does not do anything)
       rot = MiscConstants.aimBot.calculate(vision.getAprilTagX(1), 300);
+      SmartDashboard.putString("RotationStatus", "VisionControlled");
+    } else {
+      // Run the absolute rotary angle through the PID controller
+      rot = rotaryPID.calculate(robotCurrentAngle, rotaryAngle.getDegrees());
+      SmartDashboard.putString("RotationStatus", "ControllerControlled");
+    }*/
+
+    // Determine whether to use vision or rotary
+    if (cIO.stellarController.getRightCenterButton()) {
+      // Use AimBot PID Controller to align chassis with the apriltag
+      // corresponding to which side of the field the robot is on.
+      VisionSubsystem visionSource = SubsystemContainer.getSingletonInstance().getVisionObject();
+      Boolean isRedAliance = MiscUtils.isRedAlliance().getAsBoolean();
+      Pose2d currentPose = SubsystemContainer.getSingletonInstance().getChassis().getPose();
+      Rotation2d tagPose = visionSource.getYawToTag(currentPose, isRedAliance ? 4:7);
+
+      // WARINING, these units of measurement may not be accurate, please test carefully.
+      rot = MiscConstants.aimBot.calculate(tagPose.getDegrees(), 0);
       SmartDashboard.putString("RotationStatus", "VisionControlled");
     } else {
       // Run the absolute rotary angle through the PID controller

@@ -11,6 +11,9 @@ import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -18,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.SubsystemContainer;
 import frc.robot.RobotMechanisms.Crescendo.MechanismConstants.ShooterConstants;
 import frc.robot.RobotUtilities.MiscUtils;
+import frc.robot.RobotVision.VisionSubsystem;
 
 public class ShooterSubsystem extends SubsystemBase {
 
@@ -190,6 +194,20 @@ public class ShooterSubsystem extends SubsystemBase {
       double nSquared = Math.pow(this.APRIL_TAG_TO_FLOOR - this.CAMERA_TO_FLOOR, 2); // self explanatory (if it wasn't already obvious)
       double z = Math.sqrt(dSquared - nSquared); // distance from the robot to the front face of the speaker
       this.setAngleFromDistance(z);
+  }
+
+  // Aims the shooter according to the position of a tag in the robots odometry
+  public void setAngleWithOdometry() {
+    // Gather odometry info and calculate the distance to the apriltag
+    VisionSubsystem visionObject = SubsystemContainer.getSingletonInstance().getVisionObject();
+    Pose2d estimatedRobotPosition = SubsystemContainer.getSingletonInstance().getChassis().getGlobalPose();
+    int targetTag = MiscUtils.isRedAlliance().getAsBoolean() ? 4:7;
+    double distanceToTarget = visionObject.getDistanceToTag(estimatedRobotPosition, targetTag);
+    // Calulate the Hypotonuse angle and apply appropriate offsets
+    double dSquared = Math.pow(distanceToTarget, 2); // Where d = distance from april tag to camera (refrenced as apriltag z)
+    double nSquared = Math.pow(this.APRIL_TAG_TO_FLOOR - this.CAMERA_TO_FLOOR, 2); // self explanatory (if it wasn't already obvious)
+    double z = Math.sqrt(dSquared - nSquared); // distance from the robot to the front face of the speaker
+    this.setAngleFromDistance(z);
   }
 
   public void setAngleFromDistance(double distance) {

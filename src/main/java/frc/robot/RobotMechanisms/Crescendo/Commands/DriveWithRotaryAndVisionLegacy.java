@@ -115,7 +115,7 @@ public class DriveWithRotaryAndVisionLegacy extends Command {
       // corresponding to which side of the field the robot is on.
       VisionSubsystem visionSource = SubsystemContainer.getSingletonInstance().getVisionObject();
       Boolean isRedAliance = MiscUtils.isRedAlliance().getAsBoolean();
-      Pose2d currentPose = SubsystemContainer.getSingletonInstance().getChassis().getPose();
+      Pose2d currentPose = SubsystemContainer.getSingletonInstance().getChassis().getGlobalPose();
       Rotation2d tagPose = visionSource.getYawToTag(currentPose, isRedAliance ? 4:7);
 
       // WARINING, these units of measurement may not be accurate, please test carefully.

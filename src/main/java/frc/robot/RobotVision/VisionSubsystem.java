@@ -95,6 +95,19 @@ public class VisionSubsystem extends SubsystemBase {
     return PhotonUtils.getYawToPose(currentPose, tagPose);
   }
 
+  // Will return the distance in meters to a given pose on the field
+  public double getDistanceToPose(Pose2d currentPose, Pose2d targetPose) {
+    double distanceToTargetPose = PhotonUtils.getDistanceToPose(currentPose, targetPose);
+    return distanceToTargetPose;
+  }
+
+  // Will return the distance in meters from the specified tag
+  public double getDistanceToTag(Pose2d currentPose, int tagId) {
+    Pose2d tagPose; // The tag poase shouldnt be null, but in the case that it is, well pass the problem onto the caller via a -1
+    try { tagPose = PositionConstants.tagPositions.getTagPose(tagId).get().toPose2d(); } catch (Exception e) { return -1; }
+    return PhotonUtils.getDistanceToPose(currentPose, tagPose);
+  }
+
   // Returns a processed transform based on all the tag positions in the frame from the coprocessor.
   public Transform3d getMultiTagTarget(PhotonCamera photonCamera) {
     PNPResult data = getLatest(photonCamera).getMultiTagResult().estimatedPose;

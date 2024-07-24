@@ -172,23 +172,7 @@ public class ShooterSubsystem extends SubsystemBase {
       this.setTargetAngle((degrees - 34) * DEGREES_TO_ROTATIONS);
   }
 
-  // This get the pitch via the new vision subsystem
-  public double getVisionPitch() {
-    var visionObject =  SubsystemContainer.getSingletonInstance().getVisionObject();
-    // Need to be updated with the correct ID.
-    var redTagZ = visionObject.getSpecifiedTarget(visionObject.camera1, 1);
-    var blueTagZ = visionObject.getSpecifiedTarget(visionObject.camera1, 2);
-    if (redTagZ != null) {
-        return redTagZ.getPitch();
-    } else if (blueTagZ != null) {
-        return blueTagZ.getPitch();
-    } else {
-        return 0;
-    }
-  }
-
   public void setVisionAngle() {
-      double visionSource = zFilter.calculate(getVisionPitch()); 
       double legacyVisionSource = vision.getAprilTagZ(0);
       double dSquared = Math.pow(legacyVisionSource, 2); // Where d = distance from april tag to camera (refrenced as apriltag z)
       double nSquared = Math.pow(this.APRIL_TAG_TO_FLOOR - this.CAMERA_TO_FLOOR, 2); // self explanatory (if it wasn't already obvious)
@@ -198,16 +182,28 @@ public class ShooterSubsystem extends SubsystemBase {
 
   // Aims the shooter according to the position of a tag in the robots odometry
   public void setAngleWithOdometry() {
-    // Gather odometry info and calculate the distance to the apriltag
+    // Gather odometry info for calculation
     VisionSubsystem visionObject = SubsystemContainer.getSingletonInstance().getVisionObject();
     Pose2d estimatedRobotPosition = SubsystemContainer.getSingletonInstance().getChassis().getGlobalPose();
     int targetTag = MiscUtils.isRedAlliance().getAsBoolean() ? 4:7;
+
+    // distanceToTarget serves as "a" and targetHeight "b" in our pythagorean equation.
+    double targetHeight = 2.04; // In meters
     double distanceToTarget = visionObject.getDistanceToTag(estimatedRobotPosition, targetTag);
-    // Calulate the Hypotonuse angle and apply appropriate offsets
-    double dSquared = Math.pow(distanceToTarget, 2); // Where d = distance from april tag to camera (refrenced as apriltag z)
-    double nSquared = Math.pow(this.APRIL_TAG_TO_FLOOR - this.CAMERA_TO_FLOOR, 2); // self explanatory (if it wasn't already obvious)
-    double z = Math.sqrt(dSquared - nSquared); // distance from the robot to the front face of the speaker
-    this.setAngleFromDistance(z);
+
+    // Define shooter transform
+    double xTranslate = 0; // shooter front or back offset horizontal
+    double zTranslate = 0; // Shooter pivot height (from ground)
+    double revisedTargetHeight = targetHeight - zTranslate;
+    double revisedDistanceToTarget = distanceToTarget + xTranslate; // add because robot faces forward when shooting
+
+    // Calulate the Hypotonuse angle and apply any nessescary transforms
+    double aSquared = Math.pow(revisedDistanceToTarget, 2); // Where a = distance from from target pose to robot center
+    double bSquared = Math.pow(revisedTargetHeight, 2); // Where b = z offset of the target from the ground
+    double c = Math.sqrt(aSquared - bSquared); // distance from the robot to the opening of the speaker (Hypotonuse)
+    double thetaRadians = Math.acos(revisedDistanceToTarget / c);
+    double thetaDegrees = Math.toDegrees(thetaRadians);
+    this.setTargetAngleDegrees(thetaDegrees);
   }
 
   public void setAngleFromDistance(double distance) {

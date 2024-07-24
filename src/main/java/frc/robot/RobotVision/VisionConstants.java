@@ -28,8 +28,8 @@ public class VisionConstants {
 
     public static final class PositionConstants {
 
-        // Camera 1 position relative to the robot center ([Facing Forward In Center][Half A Meter Forward][Half A Meter Up])
-        public static final Transform3d robotToCam = new Transform3d(new Translation3d(0, -0.2, 0.4), new Rotation3d(0, -0.43 * Math.PI, -0.965 * Math.PI));
+        // Camera 1 position relative to the robot center ([Facing Backward In Center][Quarter and a half Meter Backwards][A Quarter Meter Up][Tilted Upward Half A Radian]) (+X is front of robot)
+        public static final Transform3d robotToCam = new Transform3d(new Translation3d(-0.35, 0, 0.25), new Rotation3d(0, -0.535 * Math.PI, -1 * Math.PI));
 
         // Get apriltag position data via FIRST provided json file
         public static final AprilTagFieldLayout tagPositions = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();

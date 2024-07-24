@@ -117,6 +117,10 @@ public class MechanismSubsystem extends SubsystemBase {
     shooter.setVisionAngle();
   }
 
+  public void setShooterAngleWithOdometry() {
+    shooter.setAngleWithOdometry();
+  }
+
   public void executePreset(double position, double speed) {
     shooter.executePreset(position, speed);
   }

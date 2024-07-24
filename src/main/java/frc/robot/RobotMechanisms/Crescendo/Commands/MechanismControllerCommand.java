@@ -211,7 +211,8 @@ public class MechanismControllerCommand extends Command {
 
       if (operatorController.getRightTriggerAxis() > 0.8 && operatorController.getLeftTriggerAxis() < 0.3) {
         mechSystem.setShooterSpeed(3800);
-        mechSystem.setShooterAngleWithVision();
+        //mechSystem.setShooterAngleWithVision();
+        mechSystem.setShooterAngleWithOdometry();
       }
 
 

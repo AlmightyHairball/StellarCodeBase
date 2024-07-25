@@ -212,6 +212,7 @@ public class MechanismControllerCommand extends Command {
       if (operatorController.getRightTriggerAxis() > 0.8 && operatorController.getLeftTriggerAxis() < 0.3) {
         mechSystem.setShooterSpeed(3800);
         //mechSystem.setShooterAngleWithVision();
+        // Aimbot jr goes based off of odometry rather than the vision target itself (ALPHA STATE)
         mechSystem.setShooterAngleWithOdometry();
       }
 

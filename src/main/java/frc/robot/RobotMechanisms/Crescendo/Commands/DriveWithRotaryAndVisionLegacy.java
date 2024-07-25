@@ -118,8 +118,12 @@ public class DriveWithRotaryAndVisionLegacy extends Command {
       Pose2d currentPose = SubsystemContainer.getSingletonInstance().getChassis().getGlobalPose();
       Rotation2d tagPose = visionSource.getYawToTag(currentPose, isRedAliance ? 4:7);
 
+      // Since our robot odometry faces away from the target, we need to invert the yaw rotation...
+      // We'll also convert it to degrees while were at it.
+      double tagPoseInverted = (tagPose.getDegrees() + 180.0) % 360.0;
+
       // WARINING, these units of measurement may not be accurate, please test carefully.
-      rot = MiscConstants.aimBot.calculate(tagPose.getDegrees(), 0);
+      rot = MiscConstants.aimBot.calculate(tagPoseInverted, 0);
       SmartDashboard.putString("RotationStatus", "VisionControlled");
     } else {
       // Run the absolute rotary angle through the PID controller

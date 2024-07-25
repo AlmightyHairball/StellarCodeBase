@@ -20,6 +20,7 @@ import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frc.robot.RobotMechanisms.Crescendo.MechanismConstants.ShooterConstants;
 import frc.robot.RobotMechanisms.Crescendo.Subsystems.VisionSubsystemLegacy;
@@ -131,10 +132,10 @@ public class Autos {
   }
 
   // Combined commands
-  public static Command shoot(boolean dontStop, MechanismSubsystem mechSystem) {
+  public static Command shoot(boolean dontStop, double triggerSpeed, MechanismSubsystem mechSystem) {
     BooleanSupplier conditions = () -> {
 
-      boolean upToSpeed = mechSystem.getShooterSpeed() >= 3800;
+      boolean upToSpeed = mechSystem.getShooterSpeed() >= triggerSpeed;
       boolean intakeFlat = mechSystem.getIntakePos() <= 0.205;
 
       if (upToSpeed && intakeFlat) {
@@ -150,7 +151,7 @@ public class Autos {
       .andThen(intakeAndHopperPower(1, 1, mechSystem))
       .andThen(Commands.waitSeconds(1))
       .andThen(intakeAndHopperPower(0, 0, mechSystem))
-      .andThen(setShooterProfile(0, dontStop ? 4000 : 0, mechSystem));
+      .andThen(setShooterProfile(0, dontStop ? triggerSpeed + 200 : 0, mechSystem));
   }
 
   public static Command aimAndShootWithVision(MechanismSubsystem mechSystem, SwerveChassisSubsystem drive) {
@@ -162,7 +163,7 @@ public class Autos {
       )
     )
     .andThen(getStopCommand(drive))
-    .andThen(shoot(true, mechSystem))
+    .andThen(shoot(true, 3800, mechSystem))
     .andThen(intakeAngle(0.16, mechSystem));
   }
 
@@ -207,10 +208,32 @@ public class Autos {
       .andThen(setShooterProfile(0, 0, mechSystem));
   }
 
+  // Methods for path planner center auto
+
+  // Aim the shooter via the robots odometry (OPTIONAL: Spin Up the Shooter To Specified Speed)
+  public static Command aimShooterWithOdometry(MechanismSubsystem mechSystem, double shooterSpeedRPM) {
+    return Commands.runOnce(() -> {
+      mechSystem.setShooterAngleWithOdometry();
+      if(shooterSpeedRPM > 0) {
+        mechSystem.setShooterSpeed(shooterSpeedRPM);
+      }
+    }, mechSystem);
+  }
+
 
   public static void registerCommandsCrescendo(SwerveChassisSubsystem chassis, MechanismSubsystem mechSystem, VisionSubsystemLegacy vision) {
-    NamedCommands.registerCommand("DrewPieceCenter", drewPiece(mechSystem, chassis));
-    NamedCommands.registerCommand("AimWithVision", aimShooterWithVision(mechSystem));
+    /* --------------------------------------------------------
+     * The Following Code Is A Path Planner Implimentation Of
+     * An Auto That Aims And Shoots It's Preloaded Game Piece
+     * Based Off Of It's Vision Assisted, Internal Odometry.
+     * -------------------------------------------------------*/
+    // Score pre-loaded note: Stage 1
+    NamedCommands.registerCommand("setShooterRPM3800", new RunCommand(() -> {mechSystem.setShooterSpeed(3800);}, mechSystem));
+    NamedCommands.registerCommand("aimAtSpeaker", aimShooterWithOdometry(mechSystem, 0).repeatedly());
+    // Score pre-loaded note: Stage 2
+    NamedCommands.registerCommand("levelIntake", intakeAngle(0.16, mechSystem));
+    NamedCommands.registerCommand("shootWhenReady", shoot(false, 3600, mechSystem));
+    NamedCommands.registerCommand("stopShooter", new RunCommand(() -> {mechSystem.setShooterSpeed(0);}, mechSystem));
   }
 
 

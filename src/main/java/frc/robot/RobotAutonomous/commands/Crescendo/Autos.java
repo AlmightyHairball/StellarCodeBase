@@ -228,12 +228,12 @@ public class Autos {
      * Based Off Of It's Vision Assisted, Internal Odometry.
      * -------------------------------------------------------*/
     // Score pre-loaded note: Stage 1
-    NamedCommands.registerCommand("setShooterRPM3800", new RunCommand(() -> {mechSystem.setShooterSpeed(3800);}, mechSystem));
+    /*NamedCommands.registerCommand("setShooterRPM3800", new RunCommand(() -> {mechSystem.setShooterSpeed(3800);}, mechSystem));
     NamedCommands.registerCommand("aimAtSpeaker", aimShooterWithOdometry(mechSystem, 0).repeatedly());
     // Score pre-loaded note: Stage 2
     NamedCommands.registerCommand("levelIntake", intakeAngle(0.16, mechSystem));
     NamedCommands.registerCommand("shootWhenReady", shoot(false, 3600, mechSystem));
-    NamedCommands.registerCommand("stopShooter", new RunCommand(() -> {mechSystem.setShooterSpeed(0);}, mechSystem));
+    NamedCommands.registerCommand("stopShooter", new RunCommand(() -> {mechSystem.setShooterSpeed(0);}, mechSystem));*/
   }
 
 

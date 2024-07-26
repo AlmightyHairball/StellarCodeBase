@@ -20,6 +20,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotVision.VisionConstants.PhotonConstants;
 import frc.robot.RobotVision.VisionConstants.PositionConstants;
@@ -105,7 +106,8 @@ public class VisionSubsystem extends SubsystemBase {
   public double getDistanceToTag(Pose2d currentPose, int tagId) {
     Pose2d tagPose; // The tag poase shouldnt be null, but in the case that it is, well pass the problem onto the caller via a -1
     try { tagPose = PositionConstants.tagPositions.getTagPose(tagId).get().toPose2d(); } catch (Exception e) { return -1; }
-    return PhotonUtils.getDistanceToPose(currentPose, tagPose);
+    double result = PhotonUtils.getDistanceToPose(currentPose, tagPose);
+    return result;
   }
 
   // Returns a processed transform based on all the tag positions in the frame from the coprocessor.

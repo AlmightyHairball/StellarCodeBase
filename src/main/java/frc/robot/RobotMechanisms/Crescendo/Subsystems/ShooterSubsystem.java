@@ -17,6 +17,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.SubsystemContainer;
 import frc.robot.RobotMechanisms.Crescendo.MechanismConstants.ShooterConstants;
@@ -169,7 +170,7 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   public void setTargetAngleDegrees(double degrees) {
-      this.setTargetAngle((degrees - 34) * DEGREES_TO_ROTATIONS);
+      this.setTargetAngle((degrees) * DEGREES_TO_ROTATIONS);
   }
 
   public void setVisionAngle() {
@@ -192,18 +193,17 @@ public class ShooterSubsystem extends SubsystemBase {
     double distanceToTarget = visionObject.getDistanceToTag(estimatedRobotPosition, targetTag);
 
     // Define shooter transform
-    double xTranslate = 0; // shooter front or back offset horizontal
-    double zTranslate = 0; // Shooter pivot height (from ground)
+    double xTranslate = -0.127; // shooter front or back offset horizontal
+    double zTranslate = 0.43; // Shooter pivot height (from ground)
     double revisedTargetHeight = targetHeight - zTranslate;
     double revisedDistanceToTarget = distanceToTarget + xTranslate; // add because robot faces forward when shooting
+    SmartDashboard.putNumber("TargetHeight", revisedTargetHeight);
+    SmartDashboard.putNumber("TargetDistance", revisedDistanceToTarget);
 
-    // Calulate the Hypotonuse angle and apply any nessescary transforms
-    double aSquared = Math.pow(revisedDistanceToTarget, 2); // Where a = distance from from target pose to robot center
-    double bSquared = Math.pow(revisedTargetHeight, 2); // Where b = z offset of the target from the ground
-    double c = Math.sqrt(aSquared - bSquared); // distance from the robot to the opening of the speaker (Hypotonuse)
-    double thetaRadians = Math.acos(revisedDistanceToTarget / c);
-    double thetaDegrees = Math.toDegrees(thetaRadians);
-    this.setTargetAngleDegrees(thetaDegrees);
+    double thetaVal = Math.atan(revisedTargetHeight / revisedDistanceToTarget);
+    double thetaToDeg = Math.toDegrees(thetaVal);
+    SmartDashboard.putNumber("thetaDegrees", thetaToDeg);
+    this.setTargetAngleDegrees(thetaToDeg);
   }
 
   public void setAngleFromDistance(double distance) {

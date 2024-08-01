@@ -206,7 +206,7 @@ public class MechanismControllerCommand extends Command {
 
 
       if (operatorController.getRightStickButton()) {
-        mechSystem.setShooterAngleWithVision();
+        mechSystem.setShooterAngleWithOdometry();
       }
 
       if (operatorController.getRightTriggerAxis() > 0.8 && operatorController.getLeftTriggerAxis() < 0.3) {

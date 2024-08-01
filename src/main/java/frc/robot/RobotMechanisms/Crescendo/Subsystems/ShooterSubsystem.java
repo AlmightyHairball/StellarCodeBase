@@ -170,7 +170,7 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   public void setTargetAngleDegrees(double degrees) {
-      this.setTargetAngle((degrees) * DEGREES_TO_ROTATIONS);
+      this.setTargetAngle((degrees - 34) * DEGREES_TO_ROTATIONS);
   }
 
   public void setVisionAngle() {
@@ -189,7 +189,7 @@ public class ShooterSubsystem extends SubsystemBase {
     int targetTag = MiscUtils.isRedAlliance().getAsBoolean() ? 4:7;
 
     // distanceToTarget serves as "a" and targetHeight "b" in our pythagorean equation.
-    double targetHeight = 2.04; // In meters
+    double targetHeight = 3.05; // In meters
     double distanceToTarget = visionObject.getDistanceToTag(estimatedRobotPosition, targetTag);
 
     // Define shooter transform

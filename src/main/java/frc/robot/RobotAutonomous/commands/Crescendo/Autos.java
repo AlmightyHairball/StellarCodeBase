@@ -20,6 +20,7 @@ import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frc.robot.RobotMechanisms.Crescendo.MechanismConstants.ShooterConstants;
@@ -220,6 +221,12 @@ public class Autos {
     }, mechSystem);
   }
 
+  // Aim the shooter via the robots odometry (OPTIONAL: Spin Up the Shooter To Specified Speed)
+  public static Command aimAndShootWhenReady(MechanismSubsystem mechSystem, double shooterSpeedRPM, double triggerSpeed, boolean dontStop) {
+    // aimShooterWithOdometry(Subsystem, SpeedToSpinUpTo)   shoot(dontStop, SpeedThatTriggersTheShoot, Subsystem)
+    return new ParallelRaceGroup(aimShooterWithOdometry(mechSystem, shooterSpeedRPM).repeatedly(), shoot(dontStop, triggerSpeed, mechSystem));
+  }
+
 
   public static void registerCommandsCrescendo(SwerveChassisSubsystem chassis, MechanismSubsystem mechSystem, VisionSubsystemLegacy vision) {
     /* --------------------------------------------------------
@@ -228,12 +235,13 @@ public class Autos {
      * Based Off Of It's Vision Assisted, Internal Odometry.
      * -------------------------------------------------------*/
     // Score pre-loaded note: Stage 1
-    /*NamedCommands.registerCommand("setShooterRPM3800", new RunCommand(() -> {mechSystem.setShooterSpeed(3800);}, mechSystem));
+    NamedCommands.registerCommand("setShooterRPM3800", new RunCommand(() -> {mechSystem.setShooterSpeed(3800);}, mechSystem));
     NamedCommands.registerCommand("aimAtSpeaker", aimShooterWithOdometry(mechSystem, 0).repeatedly());
     // Score pre-loaded note: Stage 2
     NamedCommands.registerCommand("levelIntake", intakeAngle(0.16, mechSystem));
     NamedCommands.registerCommand("shootWhenReady", shoot(false, 3600, mechSystem));
-    NamedCommands.registerCommand("stopShooter", new RunCommand(() -> {mechSystem.setShooterSpeed(0);}, mechSystem));*/
+    NamedCommands.registerCommand("stopShooter", new RunCommand(() -> {mechSystem.setShooterSpeed(0);}, mechSystem));
+    NamedCommands.registerCommand("aimAndShootWhenReady", aimAndShootWhenReady(mechSystem, 3800, 3600, false));
   }
 
 

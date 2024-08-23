@@ -24,22 +24,9 @@
           }
         },
         {
-          "type": "race",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "aimAtSpeaker"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "shootWhenReady"
-                }
-              }
-            ]
+            "name": "aimAndShootWhenReady"
           }
         },
         {

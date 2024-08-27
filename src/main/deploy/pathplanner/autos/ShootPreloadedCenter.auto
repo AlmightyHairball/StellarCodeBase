@@ -14,13 +14,13 @@
         {
           "type": "named",
           "data": {
-            "name": "setShooterRPM3800"
+            "name": "setShooter400030"
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "levelIntake"
+            "pathName": "SP1"
           }
         },
         {
@@ -32,7 +32,25 @@
         {
           "type": "named",
           "data": {
-            "name": "stopShooter"
+            "name": "intakeDown"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "SP2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "intakeOff"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "intakeLevel"
           }
         }
       ]

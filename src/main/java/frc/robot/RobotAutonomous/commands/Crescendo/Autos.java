@@ -235,6 +235,13 @@ public class Autos {
       .andThen(intakeAngle(0.16, mechSystem));
   }
 
+  // Aim the shooter via the robots odometry (OPTIONAL: Spin Up the Shooter To Specified Speed)
+  public static Command aimAndShootPreset(MechanismSubsystem mechSystem, double angle, double triggerSpeed, boolean dontStop) {
+    return Commands.runOnce(() -> { mechSystem.executePreset(angle, 4000); }, mechSystem)
+      .andThen(shoot(dontStop, triggerSpeed, mechSystem))
+      .andThen(intakeAngle(0.16, mechSystem));
+  }
+
 
   public static void registerCommandsCrescendo(SwerveChassisSubsystem chassis, MechanismSubsystem mechSystem, VisionSubsystemLegacy vision) {
     /* --------------------------------------------------------
@@ -256,6 +263,9 @@ public class Autos {
     NamedCommands.registerCommand("setShooter400030", setShooterProfile(30, 4000, mechSystem));
     // Pathplanner goes to shooting position
     NamedCommands.registerCommand("aimAndShootWhenReady", aimAndShootWhenReady(mechSystem, 0, 3800, true));
+    NamedCommands.registerCommand("aimAndShootPreset70", aimAndShootPreset(mechSystem, 70, 3800, true));
+    NamedCommands.registerCommand("aimAndShootPreset100", aimAndShootPreset(mechSystem, 110, 3800, true));
+    NamedCommands.registerCommand("aimAndShootPreset65", aimAndShootPreset(mechSystem, 55, 3800, true));
     NamedCommands.registerCommand("intakeDown", intakeAngle(0.35, mechSystem));
     NamedCommands.registerCommand("intakeOn", intakePower(1, mechSystem));
     // Pathplanner runs intake while going backward

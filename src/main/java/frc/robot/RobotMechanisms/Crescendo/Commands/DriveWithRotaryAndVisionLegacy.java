@@ -162,6 +162,11 @@ public class DriveWithRotaryAndVisionLegacy extends Command {
 
     }
 
+    // Bind a button to reseting the gyro to the odometry.
+    if (cIO.stellarController.getBButtonPressed()) {
+      chassis.zeroHeading();
+    }
+
     // Define the variables for holding the modified values in a broader scope
     double xSpeedCommanded;
     double ySpeedCommanded;

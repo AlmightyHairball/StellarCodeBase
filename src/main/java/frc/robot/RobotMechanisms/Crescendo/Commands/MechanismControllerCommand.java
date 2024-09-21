@@ -182,10 +182,9 @@ public class MechanismControllerCommand extends Command {
 
 
       if (operatorPOV == 270) 
-      { // Bumpers touching Amp preset
-        //mechSystem.setShooterAngle(ShooterConstants.ampPresetPosition);
-        mechSystem.executePreset(ShooterConstants.ampPresetPosition, 1650);
-        SmartDashboard.putString("Last Preset", "Amp");
+      { // Preset to shoot across field
+        mechSystem.executePreset(ShooterConstants.fieldPresetPosition, 2300);
+        SmartDashboard.putString("Last Preset", "Field Feeder");
       }
 
 

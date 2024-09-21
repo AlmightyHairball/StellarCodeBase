@@ -83,5 +83,16 @@ public class MiscUtils {
 
     }
 
+    // A function to normaize the PID setpoint in order to eliminate osscilations along -180 and 180
+    public static double normalizeAngle(double angle) {
+        if (angle > 180) {
+            return angle - 360;
+        } else if (angle < -180) {
+            return angle + 360;
+        } else {
+            return angle;
+        }
+    }
+
     // Next common and painful functionality to implement
 }

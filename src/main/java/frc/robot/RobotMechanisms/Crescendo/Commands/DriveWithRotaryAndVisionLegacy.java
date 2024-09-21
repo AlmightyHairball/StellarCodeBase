@@ -4,8 +4,6 @@
 
 package frc.robot.RobotMechanisms.Crescendo.Commands;
 
-import java.util.function.BooleanSupplier;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -19,9 +17,7 @@ import frc.robot.BaseConstants.DriveConstants;
 import frc.robot.BaseConstants.IOConstants;
 import frc.robot.RobotChassis.Subsystems.SwerveChassisSubsystem;
 import frc.robot.RobotControl.ControllerIO;
-import frc.robot.RobotMechanisms.Crescendo.MechanismSubsystem;
 import frc.robot.RobotMechanisms.Crescendo.MechanismConstants.MiscConstants;
-import frc.robot.RobotMechanisms.Crescendo.Subsystems.VisionSubsystemLegacy;
 import frc.robot.RobotUtilities.MiscUtils;
 import frc.robot.RobotUtilities.SwerveUtils;
 import frc.robot.RobotVision.VisionSubsystem;
@@ -67,6 +63,9 @@ public class DriveWithRotaryAndVisionLegacy extends Command {
     // Configure the rotarPID for continuous input
     rotaryPID.enableContinuousInput(0, 360);
 
+    // Config aimBot for continuous input.
+    MiscConstants.aimBot.enableContinuousInput(-180, 180);
+
     // Theres no movement without a drivetrain
     addRequirements(chassis);
 
@@ -90,7 +89,7 @@ public class DriveWithRotaryAndVisionLegacy extends Command {
 
     // Obtain the singleton controller instance
     ControllerIO cIO = ControllerIO.getPrimaryInstance(ControllerIO.controllerType.STELLAR);
-    VisionSubsystemLegacy vision = MechanismSubsystem.getVision();
+    //VisionSubsystemLegacy vision = MechanismSubsystem.getVision();
 
     // (Temporary) Get raw controller axis
     double xSpeed = cIO.stellarController.getLeftX() * -1; // Invert X Axis
@@ -118,13 +117,37 @@ public class DriveWithRotaryAndVisionLegacy extends Command {
       Pose2d currentPose = SubsystemContainer.getSingletonInstance().getChassis().getGlobalPose();
       Rotation2d tagPose = visionSource.getYawToTag(currentPose, isRedAliance ? 4:7);
 
+
+
+
+      // Calculate the target yaw based on the robot's current yaw and the error to the target
+      double currentYaw = currentPose.getRotation().getDegrees();
+      double targetYaw = currentYaw + (tagPose.getDegrees() + 180) % 360; // Adjust target based on current yaw and error
+
+      // Normalize the target yaw to the range [-180, 180]
+      double normalizedTargetYaw = MiscUtils.normalizeAngle(targetYaw);
+      
+      // Normalize the current yaw
+      double normalizedCurrentYaw = MiscUtils.normalizeAngle(currentYaw);
+
+      // Calculate the rotation output using PID
+      rot = MiscConstants.aimBot.calculate(normalizedCurrentYaw, normalizedTargetYaw);
+
+
+
       // Since our robot odometry faces away from the target, we need to invert the yaw rotation...
       // We'll also convert it to degrees while were at it.
-      double tagPoseInverted = (tagPose.getDegrees() + 180.0) % 360.0;
+      /*double tagPoseInverted = (tagPose.getDegrees() + 180.0) % 360.0;*/
+      /*double currentYaw = currentPose.getRotation().getDegrees();
+      double normalzedCurrentYaw = MiscUtils.normalizeAngle(currentYaw);
+      double targetYaw = (tagPose.getDegrees());
+      double normalizedTargetYaw = MiscUtils.normalizeAngle(targetYaw);
 
-      // WARINING, these units of measurement may not be accurate, please test carefully.
-      rot = MiscConstants.aimBot.calculate(tagPoseInverted, 0);
+      rot = MiscConstants.aimBot.calculate(normalzedCurrentYaw, targetYaw);*/
       SmartDashboard.putString("RotationStatus", "VisionControlled");
+      SmartDashboard.putNumber("RotTargetPos", normalizedTargetYaw);
+      //SmartDashboard.putNumber("RotCurrentPos", normalzedCurrentYaw);
+      SmartDashboard.putNumber("yawToTag", tagPose.getDegrees());
     } else {
       // Run the absolute rotary angle through the PID controller
       rot = rotaryPID.calculate(robotCurrentAngle, rotaryAngle.getDegrees());

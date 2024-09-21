@@ -84,7 +84,7 @@ public final class MechanismConstants {
 
         // This is a place to store objects that need to be persistent
         public static double stellarControllerAngleOffset = 0;
-        public final static PIDController aimBot = new PIDController(0.002, 0, 0);
+        public final static PIDController aimBot = new PIDController(0.02, 0, 0);
     }
 
 }
